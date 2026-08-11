@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: enterprise-ai-assistant
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/enterprise_ai
+    username: root
+    password: 2580
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+
+  mybatis-plus:
+    configuration:
+      map-underscore-to-camel-case: true
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info
