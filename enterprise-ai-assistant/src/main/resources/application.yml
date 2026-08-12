@@ -5,6 +5,18 @@ spring:
   application:
     name: enterprise-ai-assistant
 
+  ai:
+    model:
+      chat: openai
+
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        model: gpt-3.5-turbo
+      base-url: ${BASE_URL}
+
+
+
   datasource:
     url: jdbc:postgresql://localhost:5432/enterprise_ai
     username: root

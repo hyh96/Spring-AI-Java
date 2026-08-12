@@ -2,6 +2,7 @@ package com.huang.enterpriseai.exception.handler;
 
 import com.huang.enterpriseai.enums.ResponseCodeEnum;
 import com.huang.enterpriseai.vo.ResultVo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,6 +17,7 @@ import java.util.NoSuchElementException;
  * @Description: TODO
  * @DateTime: 2026/8/10 16:39
  **/
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -25,6 +27,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateKeyException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResultVo<Void> handleDuplicateKey(DuplicateKeyException e) {
+        log.error(e.getMessage());
         return ResultVo.failed(ResponseCodeEnum.RESP_409.code, "数据已存在，请勿重复添加");
     }
 
@@ -40,7 +43,7 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .map(fieldError -> fieldError.getDefaultMessage())
                 .orElse(ResponseCodeEnum.RESP_400.message);
-
+        log.error(e.getMessage());
         return ResultVo.failed(ResponseCodeEnum.RESP_400.code, message) ;
     }
 
@@ -50,14 +53,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResultVo<Void> handleException(Exception e) {
+        log.error("系统异常：", e);
         return ResultVo.failed(ResponseCodeEnum.RESP_500.code, ResponseCodeEnum.RESP_500.message);
     }
 
     @ExceptionHandler(NoSuchElementException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResultVo<Void> handleNoSuchElement(
-            NoSuchElementException e) {
-
+    public ResultVo<Void> handleNoSuchElement(NoSuchElementException e) {
+        log.error(e.getMessage());
         return ResultVo.failed(
                 ResponseCodeEnum.RESP_404.code,
                 e.getMessage()
