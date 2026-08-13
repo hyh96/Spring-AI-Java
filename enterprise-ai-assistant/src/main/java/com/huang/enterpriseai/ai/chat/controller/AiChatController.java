@@ -1,6 +1,7 @@
 package com.huang.enterpriseai.ai.chat.controller;
 
 import com.huang.enterpriseai.ai.chat.dto.ChatRequestDto;
+import com.huang.enterpriseai.ai.chat.dto.QuestionAnalysisDto;
 import com.huang.enterpriseai.ai.chat.service.AiChatService;
 import com.huang.enterpriseai.vo.ResultVo;
 import jakarta.validation.Valid;
@@ -24,8 +25,20 @@ public class AiChatController {
         this.aiChatService = aiChatService;
     }
 
-    @PostMapping
+    @PostMapping("/chat")
     public ResultVo<String> chat(@Valid @RequestBody ChatRequestDto requestDto) {
         return ResultVo.success(aiChatService.chat(requestDto.message()));
     }
+
+    @PostMapping("/templateChat")
+    public ResultVo<String> templateChat(@Valid @RequestBody ChatRequestDto requestDto) {
+        return ResultVo.success(aiChatService.templateChat(requestDto.message()));
+    }
+
+    @PostMapping("/analyze")
+    public ResultVo<QuestionAnalysisDto> analyze(@Valid @RequestBody ChatRequestDto requestDto) {
+        return ResultVo.success(aiChatService.analyze(requestDto.message()));
+    }
+
+
 }

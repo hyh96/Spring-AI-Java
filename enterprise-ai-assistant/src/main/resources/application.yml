@@ -13,7 +13,7 @@ spring:
       api-key: ${OPENAI_API_KEY}
       chat:
         model: gpt-3.5-turbo
-      base-url: ${BASE_URL}
+      base-url: https://api.91ai.me/v1
 
 
 
