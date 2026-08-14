@@ -68,7 +68,6 @@ public class AiChatServiceImpl implements AiChatService {
 
     @Override
     public QuestionAnalysisDto analyze(String message) {
-
         return chatClient
                 .prompt()
                 .system("""

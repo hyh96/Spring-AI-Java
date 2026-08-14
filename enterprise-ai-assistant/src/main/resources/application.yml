@@ -10,10 +10,10 @@ spring:
       chat: openai
 
     openai:
+      base-url: https://api.91ai.me/v1
       api-key: ${OPENAI_API_KEY}
       chat:
         model: gpt-3.5-turbo
-      base-url: https://api.91ai.me/v1
 
 
 
