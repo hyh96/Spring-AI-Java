@@ -9,5 +9,8 @@ import jakarta.validation.constraints.NotBlank;
  **/
 public record ChatRequestDto(
      @NotBlank(message = "消息不能为空")
-     String message) {
+     String message,
+     @NotBlank(message = "向量库不能为空")
+     String knowledgeBaseId
+     ) {
 }

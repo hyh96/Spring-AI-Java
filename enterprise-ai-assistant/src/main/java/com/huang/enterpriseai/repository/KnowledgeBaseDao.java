@@ -9,6 +9,5 @@ import org.apache.ibatis.annotations.Mapper;
  * @Description: TODO
  * @DateTime: 2026/8/7 17:05
  **/
-@Mapper
 public interface KnowledgeBaseDao extends BaseMapper<KnowledgeBaseEntity> {
 }

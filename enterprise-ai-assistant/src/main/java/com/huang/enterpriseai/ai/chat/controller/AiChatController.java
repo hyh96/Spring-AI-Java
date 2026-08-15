@@ -5,10 +5,7 @@ import com.huang.enterpriseai.ai.chat.dto.QuestionAnalysisDto;
 import com.huang.enterpriseai.ai.chat.service.AiChatService;
 import com.huang.enterpriseai.vo.ResultVo;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @Author: huang
@@ -40,5 +37,9 @@ public class AiChatController {
         return ResultVo.success(aiChatService.analyze(requestDto.message()));
     }
 
+    @PostMapping("/ragChat")
+    public ResultVo<String> ragChat(@Valid @RequestBody ChatRequestDto requestDto) {
+        return ResultVo.success(aiChatService.ragChat(requestDto.knowledgeBaseId(), requestDto.message()));
+    }
 
 }

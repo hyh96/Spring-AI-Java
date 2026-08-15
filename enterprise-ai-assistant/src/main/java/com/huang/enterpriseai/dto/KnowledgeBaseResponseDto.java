@@ -2,6 +2,8 @@ package com.huang.enterpriseai.dto;
 
 import com.huang.enterpriseai.constants.KnowledgeBaseStatus;
 import java.time.OffsetDateTime;
+import java.util.Date;
+
 /**
  * @Author: huang
  * @Description: TODO
@@ -12,7 +14,7 @@ public record KnowledgeBaseResponseDto(
         String name,
         String description,
         KnowledgeBaseStatus status,
-        OffsetDateTime createdAt,
-        OffsetDateTime updatedAt
+        Date createdAt,
+        Date updatedAt
 ) {
 }

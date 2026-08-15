@@ -14,4 +14,6 @@ public interface AiChatService {
      String templateChat(String message);
 
      QuestionAnalysisDto analyze(String message);
+
+     String ragChat(String knowledgeBaseId,String question);
 }

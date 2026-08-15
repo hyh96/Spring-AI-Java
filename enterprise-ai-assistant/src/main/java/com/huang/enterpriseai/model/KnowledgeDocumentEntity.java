@@ -1,34 +1,36 @@
 package com.huang.enterpriseai.model;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.huang.enterpriseai.constants.KnowledgeBaseStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.OffsetDateTime;
 import java.util.Date;
-import java.util.UUID;
 
 /**
  * @Author: huang
  * @Description: TODO
- * @DateTime: 2026/8/7 16:56
+ * @DateTime: 2026/8/14 16:18
  **/
+@TableName("ai_knowledge_document")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("ai_knowledge_base")
-public class KnowledgeBaseEntity {
+public class KnowledgeDocumentEntity {
 
     @TableId(value = "id", type = IdType.ASSIGN_UUID)
-    private String  id;
+    private String id;
 
-    private String name;
+    private String knowledgeBaseId;
 
-    private String description;
+    private String fileName;
 
-    private KnowledgeBaseStatus status;
+    private String contentType;
+
+    private Long fileSize;
+
+    private String status;
+
+    private Integer chunkCount;
 
     @TableField(fill = FieldFill.INSERT)
     private Date createdAt;

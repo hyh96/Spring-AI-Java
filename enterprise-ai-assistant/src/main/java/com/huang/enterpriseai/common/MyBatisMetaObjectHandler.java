@@ -1,10 +1,12 @@
 package com.huang.enterpriseai.common;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
+import java.util.Date;
 
 /**
  * @Author: huang
@@ -16,32 +18,30 @@ public class MyBatisMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void insertFill(MetaObject metaObject) {
-
-        OffsetDateTime now = OffsetDateTime.now();
-
+        Date now = new Date();
         this.strictInsertFill(
                 metaObject,
                 "createdAt",
-                OffsetDateTime.class,
+                Date.class,
                 now
         );
 
         this.strictInsertFill(
                 metaObject,
                 "updatedAt",
-                OffsetDateTime.class,
+                Date.class,
                 now
         );
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
-
         this.strictUpdateFill(
                 metaObject,
                 "updatedAt",
-                OffsetDateTime.class,
-                OffsetDateTime.now()
+                Date.class,
+                new Date()
         );
     }
 }
+
