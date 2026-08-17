@@ -33,8 +33,8 @@ public class AiChatController {
     }
 
     @PostMapping("/analyze")
-    public ResultVo<QuestionAnalysisDto> analyze(@Valid @RequestBody ChatRequestDto requestDto) {
-        return ResultVo.success(aiChatService.analyze(requestDto.message()));
+    public ResultVo<QuestionAnalysisDto> chatConvertJson(@Valid @RequestBody ChatRequestDto requestDto) {
+        return ResultVo.success(aiChatService.chatConvertJson(requestDto.message()));
     }
 
     @PostMapping("/ragChat")

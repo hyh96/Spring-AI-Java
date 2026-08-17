@@ -7,9 +7,11 @@ import com.huang.enterpriseai.ai.chat.service.AiChatService;
 import com.huang.enterpriseai.model.KnowledgeBaseEntity;
 import com.huang.enterpriseai.repository.KnowledgeBaseDao;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -27,12 +29,12 @@ import java.util.stream.Collectors;
 public class AiChatServiceImpl implements AiChatService {
 
     private final ChatClient chatClient;
-    private final VectorStore vectorStore;
+    private final QuestionAnswerAdvisor questionAnswerAdvisor;
     private final KnowledgeBaseDao knowledgeBaseDao;
 
-    public AiChatServiceImpl(ChatClient chatClient,VectorStore vectorStore,KnowledgeBaseDao knowledgeBaseDao) {
+    public AiChatServiceImpl(@Qualifier("ragChatClient")ChatClient chatClient, QuestionAnswerAdvisor questionAnswerAdvisor, KnowledgeBaseDao knowledgeBaseDao) {
         this.chatClient =chatClient;
-        this.vectorStore=vectorStore;
+        this.questionAnswerAdvisor=questionAnswerAdvisor;
         this.knowledgeBaseDao=knowledgeBaseDao;
 
     }
@@ -83,7 +85,7 @@ public class AiChatServiceImpl implements AiChatService {
     }
 
     @Override
-    public QuestionAnalysisDto analyze(String message) {
+    public QuestionAnalysisDto chatConvertJson(String message) {
         return chatClient
                 .prompt()
                 .system("""
@@ -108,22 +110,7 @@ public class AiChatServiceImpl implements AiChatService {
         if(knowledgeBase==null){
             throw new NoSuchElementException("知识库不存在");
         }
-
-        //2.只检索当前知识库的向量数据
-        SearchRequest searchRequest = SearchRequest.builder().query(question)
-                .topK(5)
-                .similarityThreshold(0.5)
-                .filterExpression(
-                        "knowledgeBaseId=='" + knowledgeBaseId + "'"
-                ).build();
-
-        //3.查询向量库   相似度检索
-        List<Document> documentList = vectorStore.similaritySearch(searchRequest);
-        if(CollectionUtil.isEmpty(documentList)){
-            return "当前知识库中没有检索到与该问题相关的内容";
-        }
-        //4.拼接检索出来的上下文
-        String context= documentList.stream().map(Document::getText).collect(Collectors.joining("\n\n"));
+        String filterExpression = "knowledgeBaseId == '" + knowledgeBaseId + "'";
 
         //5.交给大模型生成最终答案
         String content = chatClient.prompt().system("""
@@ -134,10 +121,11 @@ public class AiChatServiceImpl implements AiChatService {
                     2.不允许编造知识库中不存在的信息。
                     3.如果上下文不足以回答，明确告诉用户知识库中没有足够信息。
                     4.使用中文回答。
-                """).user(user -> user.text("""
-                用户问题：{question}
-                知识库上下文：{context}
-                """).param("question", question).param("context", context)).call().content();
+                """)
+                .user(question)
+                .advisors(a->a.param(QuestionAnswerAdvisor.FILTER_EXPRESSION,filterExpression))
+                .call()
+                .content();
         return content;
     }
 }

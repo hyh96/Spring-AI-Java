@@ -13,7 +13,7 @@ public interface AiChatService {
 
      String templateChat(String message);
 
-     QuestionAnalysisDto analyze(String message);
+     QuestionAnalysisDto chatConvertJson(String message);
 
      String ragChat(String knowledgeBaseId,String question);
 }
