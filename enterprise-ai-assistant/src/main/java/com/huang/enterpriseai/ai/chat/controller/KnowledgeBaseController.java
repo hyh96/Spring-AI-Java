@@ -1,11 +1,10 @@
-package com.huang.enterpriseai.controller;
+package com.huang.enterpriseai.ai.chat.controller;
 
 import com.huang.enterpriseai.dto.CreateKnowledgeBaseRequestDto;
 import com.huang.enterpriseai.dto.KnowledgeBaseResponseDto;
 import com.huang.enterpriseai.service.KnowledgeBaseService;
 import com.huang.enterpriseai.vo.ResultVo;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

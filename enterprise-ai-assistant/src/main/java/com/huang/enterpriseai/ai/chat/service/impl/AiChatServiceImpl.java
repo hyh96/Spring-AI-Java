@@ -1,24 +1,21 @@
 package com.huang.enterpriseai.ai.chat.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.stream.CollectorUtil;
 import com.huang.enterpriseai.ai.chat.dto.QuestionAnalysisDto;
 import com.huang.enterpriseai.ai.chat.service.AiChatService;
+import com.huang.enterpriseai.model.ChatConversationEntity;
 import com.huang.enterpriseai.model.KnowledgeBaseEntity;
+import com.huang.enterpriseai.ai.chat.dto.MemoryRagChatDto;
+import com.huang.enterpriseai.repository.ChatConversationDao;
 import com.huang.enterpriseai.repository.KnowledgeBaseDao;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
-import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 /**
  * @Author: huang
@@ -29,14 +26,39 @@ import java.util.stream.Collectors;
 public class AiChatServiceImpl implements AiChatService {
 
     private final ChatClient chatClient;
-    private final QuestionAnswerAdvisor questionAnswerAdvisor;
+    private final ChatClient ragChatClient;
+//    private final QuestionAnswerAdvisor questionAnswerAdvisor;
+    private final ChatClient chatRagMemoryClient;
     private final KnowledgeBaseDao knowledgeBaseDao;
+    private final ChatConversationDao chatConversationDao;
 
-    public AiChatServiceImpl(@Qualifier("ragChatClient")ChatClient chatClient, QuestionAnswerAdvisor questionAnswerAdvisor, KnowledgeBaseDao knowledgeBaseDao) {
-        this.chatClient =chatClient;
-        this.questionAnswerAdvisor=questionAnswerAdvisor;
-        this.knowledgeBaseDao=knowledgeBaseDao;
+//    public AiChatServiceImpl(@Qualifier("ragChatClient")ChatClient chatClient,@Qualifier("chatMemoryRagClient")ChatClient chatMemoryClient, QuestionAnswerAdvisor questionAnswerAdvisor, KnowledgeBaseDao knowledgeBaseDao,ChatConversationDao chatConversationDao) {
+//        this.chatClient =chatClient;
+//        this.chatMemoryClient=chatMemoryClient;
+//        this.questionAnswerAdvisor=questionAnswerAdvisor;
+//        this.knowledgeBaseDao=knowledgeBaseDao;
+//        this.chatConversationDao=chatConversationDao;
+//
+//    }
 
+    public AiChatServiceImpl(
+            @Qualifier("chatClient")
+            ChatClient chatClient,
+
+            @Qualifier("ragChatClient")
+            ChatClient ragChatClient,
+
+            @Qualifier("chatMemoryRagClient")
+            ChatClient chatMemoryRagClient,
+
+            KnowledgeBaseDao knowledgeBaseDao,
+            ChatConversationDao chatConversationDao) {
+
+        this.chatClient = chatClient;
+        this.ragChatClient = ragChatClient;
+        this.chatRagMemoryClient = chatMemoryRagClient;
+        this.knowledgeBaseDao = knowledgeBaseDao;
+        this.chatConversationDao = chatConversationDao;
     }
 
     //注册资源文件
@@ -127,5 +149,51 @@ public class AiChatServiceImpl implements AiChatService {
                 .call()
                 .content();
         return content;
+    }
+
+    @Override
+    public String memoryRagChat(MemoryRagChatDto memoryRagChat) {
+
+        String conversationId = memoryRagChat.getConversationId();
+        String question = memoryRagChat.getQuestion();
+        //1.查询会话
+        ChatConversationEntity chatConversation = chatConversationDao.selectById(conversationId);
+
+        if(chatConversation==null){
+            throw new NoSuchElementException("会话不存在");
+        }
+
+        String knowledgeBaseId = chatConversation.getKnowledgeBaseId();
+
+        //2.检验知识库
+        KnowledgeBaseEntity knowledgeBase = knowledgeBaseDao.selectById(knowledgeBaseId);
+
+        if(knowledgeBase==null){
+            throw new NoSuchElementException("知识库不存在");
+        }
+        String filterExpression = "knowledgeBaseId == '" + knowledgeBaseId + "'";
+
+        //3.Memory+Rag
+        //封装client，调用大模型返回
+       String res= chatRagMemoryClient.prompt()
+                .system("""
+                   你是企业知识库问答助手。
+                   请结合：
+                   1.当前会话历史
+                   2.当前知识库资料
+                   回答用户问题。
+                   如果知识库资料不足，
+                   请明确说明，不允许编造。
+                """)
+               .user(question)
+//                Tip :ChatMemory.CONVERSATION_ID 必须不能为空，必传，否则报错
+               .advisors(advisorSpec ->
+                       advisorSpec.param(
+                        ChatMemory.CONVERSATION_ID,
+                        conversationId)
+                .param(QuestionAnswerAdvisor.FILTER_EXPRESSION,filterExpression))
+                .call()
+                .content();
+        return res;
     }
 }

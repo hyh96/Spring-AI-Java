@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @DateTime: 2026/8/15 11:40
  **/
 @RestController
-@RequestMapping("/api/knowledge-bases")
+@RequestMapping("/api/document")
 public class KnowledgeDocumentController {
 
     private final KnowledgeDocumentService knowledgeDocumentService;

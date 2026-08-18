@@ -8,7 +8,7 @@ import javax.xml.transform.Result;
 
 /**
  * @Author: huang
- * @Description: TODO
+ * @Description: 向量库操作
  * @DateTime: 2026/8/14 15:36
  **/
 @RequestMapping("/api/ai/vector")

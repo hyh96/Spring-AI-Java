@@ -3,6 +3,7 @@ package com.huang.enterpriseai.ai.chat.controller;
 import com.huang.enterpriseai.ai.chat.dto.ChatRequestDto;
 import com.huang.enterpriseai.ai.chat.dto.QuestionAnalysisDto;
 import com.huang.enterpriseai.ai.chat.service.AiChatService;
+import com.huang.enterpriseai.ai.chat.dto.MemoryRagChatDto;
 import com.huang.enterpriseai.vo.ResultVo;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +41,12 @@ public class AiChatController {
     @PostMapping("/ragChat")
     public ResultVo<String> ragChat(@Valid @RequestBody ChatRequestDto requestDto) {
         return ResultVo.success(aiChatService.ragChat(requestDto.knowledgeBaseId(), requestDto.message()));
+    }
+
+
+    @PostMapping("/memoryRagChat")
+    public ResultVo<String> memoryRagChat(@Valid @RequestBody MemoryRagChatDto requestDto) {
+        return ResultVo.success(aiChatService.memoryRagChat(requestDto));
     }
 
 }
