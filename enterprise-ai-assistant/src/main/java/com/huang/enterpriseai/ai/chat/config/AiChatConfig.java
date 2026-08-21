@@ -61,20 +61,31 @@ public class AiChatConfig {
                 .build();
     }
 
+    /*
+     * 构建MemoryAdvisor
+     *
+     * */
+    @Bean
+    public ChatClient chatMemoryRagClient(ChatClient.Builder chatClient, VectorStore vectorStore, ChatMemory chatMemory) {
+        return chatClient.defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build(),
+                        QuestionAnswerAdvisor.builder(vectorStore)
+                                .searchRequest(SearchRequest
+                                        .builder()
+                                        .topK(5)
+                                        .similarityThreshold(0.5)
+                                        .build()).build())
+                .build();
+    }
 
     /*
-    * 构建MemoryAdvisor
-    *
-    * */
+     * 构建toolAdvisor
+     *
+     * */
     @Bean
-    public ChatClient chatMemoryRagClient(ChatClient.Builder chatClient,VectorStore vectorStore,ChatMemory chatMemory){
-        return chatClient.defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build(),
-                QuestionAnswerAdvisor.builder(vectorStore)
-                .searchRequest(SearchRequest
-                        .builder()
-                        .topK(5)
-                        .similarityThreshold(0.5)
-                        .build()).build())
+    public ChatClient chatToolMemoryClient(ChatClient.Builder builder, ChatMemory chatMemory) {
+        return builder.defaultAdvisors(MessageChatMemoryAdvisor
+                        .builder(chatMemory)
+                        .build())
                 .build();
     }
 }

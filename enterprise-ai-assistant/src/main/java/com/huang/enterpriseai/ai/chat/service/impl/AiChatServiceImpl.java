@@ -2,11 +2,13 @@ package com.huang.enterpriseai.ai.chat.service.impl;
 
 import com.huang.enterpriseai.ai.chat.dto.QuestionAnalysisDto;
 import com.huang.enterpriseai.ai.chat.service.AiChatService;
+import com.huang.enterpriseai.ai.chat.tool.KnowledgeBaseTools;
 import com.huang.enterpriseai.model.ChatConversationEntity;
 import com.huang.enterpriseai.model.KnowledgeBaseEntity;
 import com.huang.enterpriseai.ai.chat.dto.MemoryRagChatDto;
 import com.huang.enterpriseai.repository.ChatConversationDao;
 import com.huang.enterpriseai.repository.KnowledgeBaseDao;
+import com.huang.enterpriseai.repository.KnowledgeDocumentDao;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -29,8 +31,10 @@ public class AiChatServiceImpl implements AiChatService {
     private final ChatClient ragChatClient;
 //    private final QuestionAnswerAdvisor questionAnswerAdvisor;
     private final ChatClient chatRagMemoryClient;
+    private final ChatClient chatToolMemoryClient;
     private final KnowledgeBaseDao knowledgeBaseDao;
     private final ChatConversationDao chatConversationDao;
+    private final KnowledgeDocumentDao knowledgeDocumentDao;
 
 //    public AiChatServiceImpl(@Qualifier("ragChatClient")ChatClient chatClient,@Qualifier("chatMemoryRagClient")ChatClient chatMemoryClient, QuestionAnswerAdvisor questionAnswerAdvisor, KnowledgeBaseDao knowledgeBaseDao,ChatConversationDao chatConversationDao) {
 //        this.chatClient =chatClient;
@@ -51,14 +55,19 @@ public class AiChatServiceImpl implements AiChatService {
             @Qualifier("chatMemoryRagClient")
             ChatClient chatMemoryRagClient,
 
+            @Qualifier("chatToolMemoryClient")
+            ChatClient chatToolMemoryClient,
+
             KnowledgeBaseDao knowledgeBaseDao,
-            ChatConversationDao chatConversationDao) {
+            ChatConversationDao chatConversationDao, KnowledgeDocumentDao knowledgeDocumentDao) {
 
         this.chatClient = chatClient;
         this.ragChatClient = ragChatClient;
         this.chatRagMemoryClient = chatMemoryRagClient;
         this.knowledgeBaseDao = knowledgeBaseDao;
         this.chatConversationDao = chatConversationDao;
+        this.knowledgeDocumentDao = knowledgeDocumentDao;
+        this.chatToolMemoryClient=chatToolMemoryClient;
     }
 
     //注册资源文件
@@ -195,5 +204,48 @@ public class AiChatServiceImpl implements AiChatService {
                 .call()
                 .content();
         return res;
+    }
+
+    @Override
+    public String memoryToolRagChat(MemoryRagChatDto memoryRagChat) {
+
+        //获取对话内容
+        String conversationId = memoryRagChat.getConversationId();
+
+        ChatConversationEntity chatConversation = chatConversationDao.selectById(conversationId);
+
+        if(chatConversation==null){
+            throw new NoSuchElementException("会话不存在");
+        }
+        String knowledgeBaseId = chatConversation.getKnowledgeBaseId();
+
+        KnowledgeBaseEntity knowledgeBase = knowledgeBaseDao.selectById(knowledgeBaseId);
+
+        if(knowledgeBase==null){
+            throw new NoSuchElementException("知识库不存在");
+        }
+
+        //新增：给当前会话创建tool
+        KnowledgeBaseTools knowledgeBaseTools=new KnowledgeBaseTools(knowledgeDocumentDao,chatConversation);
+
+        return chatToolMemoryClient.prompt().system("""
+                    你是企业知识库智能助手。
+                    知识库正文内容问题：
+                    使用知识库检索资料回答。
+                    知识库实时业务数据，例如：
+                        -文档数量
+                        -文档处理状态统计
+                    必须优先调用提供的工具查询，
+                    不允许根据知识库正文或模型自身知识猜测实时数据。
+                    如果资料不足，请明确说明，不允许编造。
+                
+                """).user(memoryRagChat.getQuestion())
+                //Tool Calling
+                .tools(knowledgeBaseTools)
+                .advisors(advisorSpec -> advisorSpec
+                        .param(ChatMemory.CONVERSATION_ID,conversationId)
+                )
+                .call()
+                .content();
     }
 }

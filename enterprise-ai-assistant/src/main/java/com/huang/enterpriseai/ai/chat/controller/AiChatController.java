@@ -49,4 +49,9 @@ public class AiChatController {
         return ResultVo.success(aiChatService.memoryRagChat(requestDto));
     }
 
+
+    @PostMapping("/memoryToolRagChat")
+    public ResultVo<String> memoryToolRagChat(@Valid @RequestBody MemoryRagChatDto requestDto) {
+        return ResultVo.success(aiChatService.memoryToolRagChat(requestDto));
+    }
 }

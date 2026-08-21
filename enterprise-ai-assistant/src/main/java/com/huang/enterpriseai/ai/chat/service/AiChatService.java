@@ -20,4 +20,6 @@ public interface AiChatService {
 
 
      String memoryRagChat(MemoryRagChatDto memoryRagChat);
+
+     String memoryToolRagChat(MemoryRagChatDto memoryRagChat);
 }
